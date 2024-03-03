@@ -739,6 +739,7 @@ Any object.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#@cdklabs/sbt-aws.ControlPlaneAPI.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#@cdklabs/sbt-aws.ControlPlaneAPI.property.tenantOnboardingServiceTarget">tenantOnboardingServiceTarget</a></code> | <code>aws-cdk-lib.aws_events_targets.LambdaFunction</code> | *No description.* |
 | <code><a href="#@cdklabs/sbt-aws.ControlPlaneAPI.property.tenantUpdateServiceTarget">tenantUpdateServiceTarget</a></code> | <code>aws-cdk-lib.aws_events_targets.ApiGateway</code> | *No description.* |
 | <code><a href="#@cdklabs/sbt-aws.ControlPlaneAPI.property.apiUrl">apiUrl</a></code> | <code>any</code> | *No description.* |
 
@@ -753,6 +754,16 @@ public readonly node: Node;
 - *Type:* constructs.Node
 
 The tree node.
+
+---
+
+##### `tenantOnboardingServiceTarget`<sup>Required</sup> <a name="tenantOnboardingServiceTarget" id="@cdklabs/sbt-aws.ControlPlaneAPI.property.tenantOnboardingServiceTarget"></a>
+
+```typescript
+public readonly tenantOnboardingServiceTarget: LambdaFunction;
+```
+
+- *Type:* aws-cdk-lib.aws_events_targets.LambdaFunction
 
 ---
 
@@ -1305,6 +1316,7 @@ Any object.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#@cdklabs/sbt-aws.Services.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#@cdklabs/sbt-aws.Services.property.onboardingService">onboardingService</a></code> | <code>aws-cdk-lib.aws_lambda.Function</code> | *No description.* |
 | <code><a href="#@cdklabs/sbt-aws.Services.property.tenantManagementServices">tenantManagementServices</a></code> | <code>aws-cdk-lib.aws_lambda.Function</code> | *No description.* |
 
 ---
@@ -1318,6 +1330,16 @@ public readonly node: Node;
 - *Type:* constructs.Node
 
 The tree node.
+
+---
+
+##### `onboardingService`<sup>Required</sup> <a name="onboardingService" id="@cdklabs/sbt-aws.Services.property.onboardingService"></a>
+
+```typescript
+public readonly onboardingService: Function;
+```
+
+- *Type:* aws-cdk-lib.aws_lambda.Function
 
 ---
 

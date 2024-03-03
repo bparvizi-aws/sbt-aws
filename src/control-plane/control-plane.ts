@@ -77,8 +77,16 @@ export class ControlPlane extends Construct {
       'ProvisioningServiceRule',
       [props.onboardingDetailType],
       [props.applicationPlaneEventSource],
-      controlPlaneAPI.tenantUpdateServiceTarget
+      controlPlaneAPI.tenantOnboardingServiceTarget
     );
+
+    /*eventManager.addRuleWithTarget(
+      'ProvisioningServiceRule',
+      [props.onboardingDetailType],
+      [props.applicationPlaneEventSource],
+      controlPlaneAPI.tenantUpdateServiceTarget
+    );*/
+
     eventManager.addRuleWithTarget(
       'DeprovisioningServiceRule',
       [props.offboardingDetailType],

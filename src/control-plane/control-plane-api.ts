@@ -21,7 +21,10 @@ export interface ControlPlaneAPIProps {
 
 export class ControlPlaneAPI extends Construct {
   apiUrl: any;
+
   public readonly tenantUpdateServiceTarget: targets.ApiGateway;
+  public readonly tenantOnboardingServiceTarget: targets.LambdaFunction;
+
   constructor(scope: Construct, id: string, props: ControlPlaneAPIProps) {
     super(scope, id);
 
@@ -110,14 +113,10 @@ export class ControlPlaneAPI extends Construct {
     );
 
     const tenants = controlPlaneAPI.root.addResource('tenants');
-    tenants.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(props.services.tenantManagementServices),
-      {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
-        authorizer: props.auth.authorizer,
-      }
-    );
+    tenants.addMethod('POST', new apigateway.LambdaIntegration(props.services.onboardingService), {
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+      authorizer: props.auth.authorizer,
+    });
     tenants.addMethod(
       'GET',
       new apigateway.LambdaIntegration(props.services.tenantManagementServices),
@@ -158,6 +157,10 @@ export class ControlPlaneAPI extends Construct {
       pathParameterValues: ['$.detail.tenantId'],
       postBody: RuleTargetInput.fromEventPath('$.detail.tenantOutput'),
     });
+
+    this.tenantOnboardingServiceTarget = new targets.LambdaFunction(
+      props.services.onboardingService
+    );
 
     NagSuppressions.addResourceSuppressions(
       [this],

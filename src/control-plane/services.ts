@@ -21,6 +21,7 @@ export interface ServicesProps {
 }
 
 export class Services extends Construct {
+  onboardingService: Function;
   tenantManagementServices: Function;
 
   constructor(scope: Construct, id: string, props: ServicesProps) {
@@ -64,6 +65,22 @@ export class Services extends Construct {
       ],
       true // applyToChildren = true, so that it applies to policies created for the role.
     );
+
+    const onboardingService = new PythonFunction(this, 'OnboardingService', {
+      entry: path.join(__dirname, '../../resources/functions/'),
+      runtime: Runtime.PYTHON_3_12,
+      index: 'onboarding_service.py',
+      handler: 'lambda_handler',
+      timeout: Duration.seconds(60),
+      role: tenantManagementExecRole,
+      layers: [props.lambdaLayer],
+      environment: {
+        EVENTBUS_NAME: props.eventBus.eventBusName,
+        EVENT_SOURCE: props.controlPlaneEventSource,
+        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
+      },
+    });
+    this.onboardingService = onboardingService;
 
     const tenantManagementServices = new PythonFunction(this, 'TenantManagementServices', {
       entry: path.join(__dirname, '../../resources/functions/'),
