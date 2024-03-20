@@ -9,6 +9,7 @@ import { IAuth } from './auth';
 import { ControlPlaneAPI } from './control-plane-api';
 import { LambdaLayers } from './lambda-layers';
 import { Messaging } from './messaging';
+import { OnboardingStepFunctions } from './onboarding-step-functions';
 import { Services } from './services';
 import { Tables } from './tables';
 import { TenantConfigService } from './tenant-config/tenant-config-service';
@@ -49,6 +50,12 @@ export class ControlPlane extends Construct {
       controlPlaneEventSource: props.controlPlaneEventSource,
     });
 
+    const onboardingStepFunctions = new OnboardingStepFunctions(this, 'onboarding-step-functions', {
+      initiateOnboarding: services.initiateOnboarding,
+      completeOnboarding: services.completeOnboarding,
+      errorHandler: services.errorHandler,
+    });
+
     const tenantConfigService = new TenantConfigService(this, 'auth-info-service-stack', {
       tenantDetails: tables.tenantDetails,
       tenantDetailsTenantNameColumn: tables.tenantNameColumn,
@@ -77,15 +84,8 @@ export class ControlPlane extends Construct {
       'ProvisioningServiceRule',
       [props.onboardingDetailType],
       [props.applicationPlaneEventSource],
-      controlPlaneAPI.tenantOnboardingServiceTarget
-    );
-
-    /*eventManager.addRuleWithTarget(
-      'ProvisioningServiceRule',
-      [props.onboardingDetailType],
-      [props.applicationPlaneEventSource],
       controlPlaneAPI.tenantUpdateServiceTarget
-    );*/
+    );
 
     eventManager.addRuleWithTarget(
       'DeprovisioningServiceRule',
@@ -98,6 +98,22 @@ export class ControlPlane extends Construct {
       value: controlPlaneAPI.apiUrl,
       key: 'controlPlaneAPIGatewayUrl',
     });
+
+    NagSuppressions.addResourceSuppressions(
+      onboardingStepFunctions,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'Wildcard required in order pass tenantId in path.',
+          appliesTo: [
+            'Resource::<ControlPlaneservicesstackInitiateOnboarding63EF458A.Arn>:*',
+            'Resource::<ControlPlaneservicesstackCompleteOnboardingA18359A9.Arn>:*',
+            'Resource::<ControlPlaneservicesstackErrorHandlerB076570C.Arn>:*',
+          ],
+        },
+      ],
+      true // applyToChildren = true, so that it applies to the APIGW role created by cdk in the controlPlaneAPI construct
+    );
 
     // defined suppression here to suppress EventsRole Default policy
     // which gets updated in EventManager construct, but is part of ControlPlane API
@@ -138,6 +154,16 @@ export class ControlPlane extends Construct {
         {
           id: 'AwsSolutions-IAM5',
           reason: 'Suppress error from resource created for setting log retention.',
+          appliesTo: ['Resource::*'],
+        },
+        {
+          id: 'AwsSolutions-SF1',
+          reason: 'Logging "ALL" events to CloudWatch logs not required.',
+          appliesTo: ['Resource::*'],
+        },
+        {
+          id: 'AwsSolutions-SF2',
+          reason: 'X-Ray tracing not required.',
           appliesTo: ['Resource::*'],
         },
       ]
