@@ -22,6 +22,7 @@ export interface ServicesProps {
 
 export class Services extends Construct {
   initiateOnboarding: Function;
+  provisionOnboarding: Function;
   completeOnboarding: Function;
   errorHandler: Function;
   tenantManagementServices: Function;
@@ -84,6 +85,22 @@ export class Services extends Construct {
       },
     });
     this.initiateOnboarding = initiateOnboarding;
+
+    const provisionOnboarding = new PythonFunction(this, 'ProvisionOnboarding', {
+      entry: path.join(__dirname, '../../resources/functions/'),
+      runtime: Runtime.PYTHON_3_12,
+      index: 'initiate_onboarding.py',
+      handler: 'lambda_handler',
+      timeout: Duration.seconds(60),
+      role: tenantManagementExecRole,
+      layers: [props.lambdaLayer],
+      environment: {
+        EVENTBUS_NAME: props.eventBus.eventBusName,
+        EVENT_SOURCE: props.controlPlaneEventSource,
+        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
+      },
+    });
+    this.provisionOnboarding = provisionOnboarding;
 
     const completeOnboarding = new PythonFunction(this, 'CompleteOnboarding', {
       entry: path.join(__dirname, '../../resources/functions/'),

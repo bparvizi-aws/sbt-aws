@@ -11,6 +11,7 @@ import { Construct } from 'constructs';
 
 export interface OnboardingStepFunctionsProps {
   readonly initiateOnboarding: PythonFunction;
+  readonly provisionOnboarding: PythonFunction;
   readonly completeOnboarding: PythonFunction;
   readonly errorHandler: PythonFunction;
 }
@@ -31,6 +32,18 @@ export class OnboardingStepFunctions extends Construct {
       taskTimeout: stepfunctions.Timeout.duration(cdk.Duration.minutes(5)),
     }).addCatch(errorHandlerTask);
 
+    // Provision Onboarding.
+    const provisionOnboardingTask = new tasks.LambdaInvoke(this, 'ProvisionOnboarding', {
+      lambdaFunction: props.provisionOnboarding,
+      integrationPattern: stepfunctions.IntegrationPattern.WAIT_FOR_TASK_TOKEN,
+      inputPath: '$',
+      payload: stepfunctions.TaskInput.fromObject({
+        taskToken: stepfunctions.JsonPath.taskToken, // Save token to external checkpointing system, e.g., DynamoDB
+        'previousOutput.$': '$',
+      }),
+      taskTimeout: stepfunctions.Timeout.duration(cdk.Duration.hours(2)),
+    }).addCatch(errorHandlerTask);
+
     // Complete Onboarding.
     const completeOnboardingTask = new tasks.LambdaInvoke(this, 'CompleteOnboarding', {
       lambdaFunction: props.completeOnboarding,
@@ -44,8 +57,10 @@ export class OnboardingStepFunctions extends Construct {
       retention: logs.RetentionDays.THREE_DAYS,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
-    const definition = initiateOnboardingTask.next(completeOnboardingTask);
-    const stepfunction = new stepfunctions.StateMachine(this, 'OnboardingStateMachine', {
+    const definition = initiateOnboardingTask
+      .next(provisionOnboardingTask)
+      .next(completeOnboardingTask);
+    const stateMachine = new stepfunctions.StateMachine(this, 'OnboardingStateMachine', {
       definitionBody: stepfunctions.DefinitionBody.fromChainable(definition),
       logs: {
         destination: logGroup,
@@ -55,7 +70,7 @@ export class OnboardingStepFunctions extends Construct {
     });
 
     NagSuppressions.addResourceSuppressions(
-      stepfunction,
+      stateMachine,
       [
         {
           id: 'AwsSolutions-IAM5',

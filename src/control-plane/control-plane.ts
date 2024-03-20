@@ -52,6 +52,7 @@ export class ControlPlane extends Construct {
 
     const onboardingStepFunctions = new OnboardingStepFunctions(this, 'onboarding-step-functions', {
       initiateOnboarding: services.initiateOnboarding,
+      provisionOnboarding: services.provisionOnboarding,
       completeOnboarding: services.completeOnboarding,
       errorHandler: services.errorHandler,
     });
@@ -108,6 +109,7 @@ export class ControlPlane extends Construct {
           appliesTo: [
             'Resource::<ControlPlaneservicesstackInitiateOnboarding63EF458A.Arn>:*',
             'Resource::<ControlPlaneservicesstackCompleteOnboardingA18359A9.Arn>:*',
+            'Resource::<ControlPlaneservicesstackProvisionOnboardingC4EC19B0.Arn>:*',
             'Resource::<ControlPlaneservicesstackErrorHandlerB076570C.Arn>:*',
           ],
         },
