@@ -89,7 +89,7 @@ export class Services extends Construct {
     const provisionOnboarding = new PythonFunction(this, 'ProvisionOnboarding', {
       entry: path.join(__dirname, '../../resources/functions/'),
       runtime: Runtime.PYTHON_3_12,
-      index: 'initiate_onboarding.py',
+      index: 'provision_onboarding.py',
       handler: 'lambda_handler',
       timeout: Duration.seconds(60),
       role: tenantManagementExecRole,

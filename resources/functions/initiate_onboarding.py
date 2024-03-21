@@ -1,6 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import os
 import uuid
 
@@ -19,7 +20,7 @@ tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 
 
 @tracer.capture_method
-def create_tenant(event):
+def __initiate_onboarding(event):
     input_details = event
     input_item = {}
     input_details['tenantId'] = str(uuid.uuid4())
@@ -32,22 +33,18 @@ def create_tenant(event):
         input_item['taskToken'] = ''
 
         response = tenant_details_table.put_item(Item=input_item)
-        return input_item
+        return {
+            'Payload': input_item
+        }
     except Exception as e:
         raise Exception("Error creating a new tenant", e)
-
-
-def __initiate_onboarding(event):
-    try:
-        create_tenant(event)
-    except Exception as e:
-        raise Exception("Error initiating onboarding: ", e)
 
 
 @tracer.capture_lambda_handler
 def lambda_handler(event, context):
     logger.info('lambda_handler event %s:', event)
     try:
-        __initiate_onboarding(event)
+        response = __initiate_onboarding(event)
+        return response
     except Exception as e:
         raise Exception("Error lambda_handler: ", e)

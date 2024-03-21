@@ -29,6 +29,7 @@ export class OnboardingStepFunctions extends Construct {
     const initiateOnboardingTask = new tasks.LambdaInvoke(this, 'InitiateOnboarding', {
       lambdaFunction: props.initiateOnboarding,
       integrationPattern: stepfunctions.IntegrationPattern.REQUEST_RESPONSE,
+      outputPath: '$.Payload',
       taskTimeout: stepfunctions.Timeout.duration(cdk.Duration.minutes(5)),
     }).addCatch(errorHandlerTask);
 
