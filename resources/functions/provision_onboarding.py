@@ -1,10 +1,12 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import os
 
 import boto3
 from aws_lambda_powertools import Logger, Tracer
+import dynamodb.tenant_management_util as tenant_management_util
 
 tracer = Tracer()
 logger = Logger()
@@ -18,14 +20,20 @@ tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 
 def __provision_onboarding(event):
     try:
-        logger.info('__provision_onboarding %s:', event)
+        item = event['previousOutput']['Payload']
+        item['taskToken'] = event['taskToken']
+
+        response = tenant_management_util.update_tenant(item['tenantId'], item)
+        logger.info('update_tenant %s:', response)
+        return item
     except Exception as e:
-        raise Exception("Error initiating onboarding: ", e)
+        raise Exception("Error provision onboarding: ", e)
 
 
 @tracer.capture_lambda_handler
 def lambda_handler(event, context):
     try:
-        __provision_onboarding(event)
+        response = __provision_onboarding(event)
+        return response
     except Exception as e:
         raise Exception("Error lambda_handler: ", e)
