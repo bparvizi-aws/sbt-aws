@@ -1,11 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import json
 import os
-
 import boto3
 from aws_lambda_powertools import Logger, Tracer
+from datetime import datetime
 import dynamodb.tenant_management_util as tenant_management_util
 
 tracer = Tracer()
@@ -22,7 +21,8 @@ def __provision_onboarding(event):
     try:
         item = event['previousOutput']['Payload']
         item['taskToken'] = event['taskToken']
-
+        now = datetime.now()
+        item['tenantStatus']['Provision Onboarding'] = now.strftime('%Y-%m-%d %H:%M:%S')
         response = tenant_management_util.update_tenant(item['tenantId'], item)
         logger.info('update_tenant %s:', response)
         return item

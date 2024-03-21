@@ -4,7 +4,7 @@
 import os
 import boto3
 from aws_lambda_powertools import Logger, Tracer
-from models.control_plane_event_types import ControlPlaneEventTypes
+from datetime import datetime
 import dynamodb.tenant_management_util as tenant_management_util
 
 tracer = Tracer()
@@ -20,6 +20,9 @@ tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 @tracer.capture_method
 def __initiate_onboarding(event):
     try:
+        # set tenant status.
+        now = datetime.now()
+        event['tenantStatus'] = {"Initiate Onboarding": now.strftime('%Y-%m-%d %H:%M:%S')}
         tenant = tenant_management_util.create_tenant(event)
         logger.info("tenant_management_util.create_tenant success: %s", tenant)
         return {
