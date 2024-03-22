@@ -23,6 +23,7 @@ export class EventManager extends Construct {
    * @attribute
    */
   private readonly eventBus: IEventBus;
+
   constructor(scope: Construct, id: string, props: EventManagerProps) {
     super(scope, id);
     this.eventBus = props.eventBus;
@@ -41,8 +42,8 @@ export class EventManager extends Construct {
       eventBus: this.eventBus,
       enabled: true,
       eventPattern: {
-        source: eventDetailType,
-        detailType: eventSource,
+        source: eventSource,
+        detailType: eventDetailType,
       },
     });
     rule.addTarget(target);
