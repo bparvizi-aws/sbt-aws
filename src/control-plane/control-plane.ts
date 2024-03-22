@@ -81,11 +81,18 @@ export class ControlPlane extends Construct {
       eventBus: eventBus,
     });
 
-    eventManager.addRuleWithTarget(
+    /* eventManager.addRuleWithTarget(
       'ProvisioningServiceRule',
       [props.onboardingDetailType],
       [props.applicationPlaneEventSource],
       controlPlaneAPI.tenantUpdateServiceTarget
+    );*/
+
+    eventManager.addRuleWithTarget(
+      'ProvisioningServiceRule',
+      [props.onboardingDetailType],
+      [props.applicationPlaneEventSource],
+      onboardingStepFunctions.lambdaEventTarget
     );
 
     eventManager.addRuleWithTarget(

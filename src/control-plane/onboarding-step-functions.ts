@@ -4,8 +4,8 @@
 import * as path from 'path';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import * as cdk from 'aws-cdk-lib';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as stepfunctions from 'aws-cdk-lib/aws-stepfunctions';
@@ -21,6 +21,8 @@ export interface OnboardingStepFunctionsProps {
 }
 
 export class OnboardingStepFunctions extends Construct {
+  lambdaEventTarget: LambdaFunction;
+
   constructor(scope: Construct, id: string, props: OnboardingStepFunctionsProps) {
     super(scope, id);
 
@@ -87,7 +89,7 @@ export class OnboardingStepFunctions extends Construct {
     lambdaExecRole.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess')
     );
-    const policyStatement = new iam.PolicyStatement({
+    const policyStatement = new PolicyStatement({
       actions: ['states:SendTaskSuccess', 'states:SendTaskFailure'],
       resources: [stateMachine.stateMachineArn],
     });
@@ -114,13 +116,14 @@ export class OnboardingStepFunctions extends Construct {
       true // applyToChildren = true, so that it applies to policies created for the role.
     );
 
-    new PythonFunction(this, 'OnboardingEventsHandler', {
+    const onboardingEventsHandler = new PythonFunction(this, 'OnboardingEventsHandler', {
       entry: path.join(__dirname, '../../resources/functions/'),
       runtime: Runtime.PYTHON_3_12,
       index: 'onboarding_events_handler.py',
       handler: 'lambda_handler',
       role: lambdaExecRole,
     });
+    this.lambdaEventTarget = new LambdaFunction(onboardingEventsHandler);
 
     NagSuppressions.addResourceSuppressions(
       stateMachine,

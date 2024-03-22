@@ -6,11 +6,14 @@ sfn_client = boto3.client('stepfunctions')
 
 
 def lambda_handler(event, context):
-    # Extract the task token from the event. Adjust the key based on your actual event structure.
-    task_token = event.get('taskToken')
+    print(event)
+    detail = event.get('detail')
 
-    # Get result of success or failure
-    process_result = event.get('result')
+    # Extract the task token from the event.
+    task_token = detail.get('taskToken')
+
+    # Extract result (success or failure) from the event.
+    process_result = detail.get('result')
 
     try:
         if process_result == 'success':
