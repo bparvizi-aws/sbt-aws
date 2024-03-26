@@ -1,19 +1,27 @@
 import json
 import boto3
+import dynamodb.tenant_management_util as tenant_management_util
+from aws_lambda_powertools import Logger, Tracer
+
+tracer = Tracer()
+logger = Logger()
 
 # Initialize the Boto3 Step Functions client
 sfn_client = boto3.client('stepfunctions')
 
 
 def lambda_handler(event, context):
-    print(event)
     detail = event.get('detail')
-
-    # Extract the task token from the event.
-    task_token = detail.get('taskToken')
 
     # Extract result (success or failure) from the event.
     process_result = detail.get('result')
+
+    # Extract the task token from the event.
+    task_token = detail.get('taskToken')
+    tenant_id = detail.get('tenantId')
+
+    tenant_details = tenant_management_util.get_tenant(tenant_id)
+    logger.info('Get tenant_details success: %s', tenant_details)
 
     try:
         if process_result == 'success':

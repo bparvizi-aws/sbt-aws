@@ -16,6 +16,15 @@ tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 
 
 @tracer.capture_method
+def get_tenant(tenant_id):
+    try:
+        response = tenant_details_table.get_item(Key={'tenantId': tenant_id})
+        return response
+    except Exception as e:
+        raise Exception('Error getting tenant', e)
+
+
+@tracer.capture_method
 def create_tenant(event):
     input_details = event
     input_item = {}
@@ -31,6 +40,7 @@ def create_tenant(event):
         return input_item
     except Exception as e:
         raise Exception("Error creating a new tenant", e)
+
 
 @tracer.capture_method
 def update_tenant(tenantId, tenant):

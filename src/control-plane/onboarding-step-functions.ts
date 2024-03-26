@@ -4,6 +4,7 @@
 import * as path from 'path';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import * as cdk from 'aws-cdk-lib';
+import { Duration } from 'aws-cdk-lib';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -12,6 +13,8 @@ import * as stepfunctions from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
+import { LambdaLayers } from './lambda-layers';
+import { Tables } from './tables';
 
 export interface OnboardingStepFunctionsProps {
   readonly initiateOnboarding: PythonFunction;
@@ -94,13 +97,17 @@ export class OnboardingStepFunctions extends Construct {
       resources: [stateMachine.stateMachineArn],
     });
     lambdaExecRole.addToPolicy(policyStatement);
+    const tables = new Tables(this, 'tables-stack');
+    tables.tenantDetails.grantReadWriteData(lambdaExecRole);
     NagSuppressions.addResourceSuppressions(
       lambdaExecRole,
       [
         {
           id: 'AwsSolutions-IAM5',
           reason: 'Index name(s) not known beforehand.',
-          appliesTo: [`Resource::<ControlPlanetablesstackTenantDetails78527218.Arn>/index/*`],
+          appliesTo: [
+            `Resource::<ControlPlaneonboardingstepfunctionstablesstackTenantDetails950232C3.Arn>/index/*`,
+          ],
         },
         {
           id: 'AwsSolutions-IAM4',
@@ -116,12 +123,19 @@ export class OnboardingStepFunctions extends Construct {
       true // applyToChildren = true, so that it applies to policies created for the role.
     );
 
+    const lambdaLayers = new LambdaLayers(this, 'controlplane-lambda-layers');
+
     const onboardingEventsHandler = new PythonFunction(this, 'OnboardingEventsHandler', {
       entry: path.join(__dirname, '../../resources/functions/'),
       runtime: Runtime.PYTHON_3_12,
       index: 'onboarding_events_handler.py',
       handler: 'lambda_handler',
+      timeout: Duration.seconds(60),
       role: lambdaExecRole,
+      layers: [lambdaLayers.controlPlaneLambdaLayer],
+      environment: {
+        TENANT_DETAILS_TABLE: tables.tenantDetails.tableName,
+      },
     });
     this.lambdaEventTarget = new LambdaFunction(onboardingEventsHandler);
 
