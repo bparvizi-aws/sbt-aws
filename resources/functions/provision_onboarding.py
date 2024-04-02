@@ -15,8 +15,6 @@ logger = Logger()
 event_bus = boto3.client('events')
 eventbus_name = os.environ['EVENTBUS_NAME']
 event_source = os.environ['EVENT_SOURCE']
-dynamodb = boto3.resource('dynamodb')
-tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 
 
 def __provision_onboarding(event):

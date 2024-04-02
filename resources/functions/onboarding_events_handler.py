@@ -20,15 +20,15 @@ def lambda_handler(event, context):
     task_token = detail.get('taskToken')
     tenant_id = detail.get('tenantId')
 
-    tenant_details = tenant_management_util.get_tenant(tenant_id)
-    logger.info('Get tenant_details success: %s', tenant_details)
+    #tenant_details = tenant_management_util.get_tenant(tenant_id)
+    #logger.info('Get tenant_details success: %s', tenant_details)
 
     try:
         if process_result == 'success':
             # If process is successful, send task success
             response = sfn_client.send_task_success(
                 taskToken=task_token,
-                output=json.dumps({"message": "Provisioning completed successfully"})
+                output=json.dumps({"tenantId": tenant_id, "message": "Provisioning completed successfully"})
             )
             return {
                 'statusCode': 200,
