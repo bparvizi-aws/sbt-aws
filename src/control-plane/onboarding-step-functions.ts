@@ -43,7 +43,7 @@ export class OnboardingStepFunctions extends Construct {
       ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess')
     );
     props.tables.tenantDetails.grantReadWriteData(lambdaExecRole);
-
+    props.eventBus.grantPutEventsTo(lambdaExecRole);
     NagSuppressions.addResourceSuppressions(
       lambdaExecRole,
       [
@@ -63,7 +63,7 @@ export class OnboardingStepFunctions extends Construct {
           ],
         },
       ],
-      true // applyToChildren = true, so that it applies to policies created for the role.
+      true
     );
 
     // Lambda Functions:
@@ -196,7 +196,7 @@ export class OnboardingStepFunctions extends Construct {
           ],
         },
       ],
-      true // applyToChildren = true, so that it applies to the APIGW role created by cdk in the controlPlaneAPI construct
+      true
     );
 
     const lambdaEventHandlerExecRole = new Role(this, 'lambdaEventHandlerExecRole', {
@@ -232,7 +232,7 @@ export class OnboardingStepFunctions extends Construct {
           ],
         },
       ],
-      true // applyToChildren = true, so that it applies to policies created for the role.
+      true
     );
     const policyStatement = new PolicyStatement({
       actions: ['states:SendTaskSuccess', 'states:SendTaskFailure'],
