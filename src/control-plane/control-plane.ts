@@ -51,10 +51,10 @@ export class ControlPlane extends Construct {
     });
 
     const onboardingStepFunctions = new OnboardingStepFunctions(this, 'onboarding-step-functions', {
-      initiateOnboarding: services.initiateOnboarding,
-      provisionOnboarding: services.provisionOnboarding,
-      completeOnboarding: services.completeOnboarding,
-      errorHandler: services.errorHandler,
+      controlPlaneEventSource: props.controlPlaneEventSource,
+      eventBus: messaging.eventBus,
+      lambdaLayer: lambdaLayers.controlPlaneLambdaLayer,
+      tables: tables,
     });
 
     const tenantConfigService = new TenantConfigService(this, 'auth-info-service-stack', {

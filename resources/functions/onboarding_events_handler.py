@@ -1,3 +1,5 @@
+
+import os
 import json
 import boto3
 import dynamodb.tenant_management_util as tenant_management_util
@@ -8,7 +10,8 @@ logger = Logger()
 
 # Initialize the Boto3 Step Functions client
 sfn_client = boto3.client('stepfunctions')
-
+dynamodb = boto3.resource('dynamodb')
+tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
 
 def lambda_handler(event, context):
     detail = event.get('detail')
@@ -20,8 +23,8 @@ def lambda_handler(event, context):
     task_token = detail.get('taskToken')
     tenant_id = detail.get('tenantId')
 
-    #tenant_details = tenant_management_util.get_tenant(tenant_id)
-    #logger.info('Get tenant_details success: %s', tenant_details)
+    tenant_details = tenant_management_util.get_tenant(tenant_id)
+    logger.info('Get tenant_details success Refactor 1: %s', tenant_details)
 
     try:
         if process_result == 'success':

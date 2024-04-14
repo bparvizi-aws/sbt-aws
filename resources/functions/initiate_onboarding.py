@@ -24,7 +24,7 @@ def __initiate_onboarding(event):
         now = datetime.now()
         event['tenantStatus'] = {"Initiate Onboarding": now.strftime('%Y-%m-%d %H:%M:%S')}
         tenant = tenant_management_util.create_tenant(event)
-        logger.info("tenant_management_util.create_tenant success: %s", tenant)
+        logger.info("tenant_management_util.create_tenant success Refactor 1: %s", tenant)
         return {
             'Payload': tenant
         }

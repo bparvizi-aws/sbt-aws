@@ -21,10 +21,6 @@ export interface ServicesProps {
 }
 
 export class Services extends Construct {
-  initiateOnboarding: Function;
-  provisionOnboarding: Function;
-  completeOnboarding: Function;
-  errorHandler: Function;
   tenantManagementServices: Function;
 
   constructor(scope: Construct, id: string, props: ServicesProps) {
@@ -68,72 +64,6 @@ export class Services extends Construct {
       ],
       true // applyToChildren = true, so that it applies to policies created for the role.
     );
-
-    // Onboarding services.
-    const initiateOnboarding = new PythonFunction(this, 'InitiateOnboarding', {
-      entry: path.join(__dirname, '../../resources/functions/'),
-      runtime: Runtime.PYTHON_3_12,
-      index: 'initiate_onboarding.py',
-      handler: 'lambda_handler',
-      timeout: Duration.seconds(60),
-      role: tenantManagementExecRole,
-      layers: [props.lambdaLayer],
-      environment: {
-        EVENTBUS_NAME: props.eventBus.eventBusName,
-        EVENT_SOURCE: props.controlPlaneEventSource,
-        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
-      },
-    });
-    this.initiateOnboarding = initiateOnboarding;
-
-    const provisionOnboarding = new PythonFunction(this, 'ProvisionOnboarding', {
-      entry: path.join(__dirname, '../../resources/functions/'),
-      runtime: Runtime.PYTHON_3_12,
-      index: 'provision_onboarding.py',
-      handler: 'lambda_handler',
-      timeout: Duration.seconds(60),
-      role: tenantManagementExecRole,
-      layers: [props.lambdaLayer],
-      environment: {
-        EVENTBUS_NAME: props.eventBus.eventBusName,
-        EVENT_SOURCE: props.controlPlaneEventSource,
-        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
-      },
-    });
-    this.provisionOnboarding = provisionOnboarding;
-
-    const completeOnboarding = new PythonFunction(this, 'CompleteOnboarding', {
-      entry: path.join(__dirname, '../../resources/functions/'),
-      runtime: Runtime.PYTHON_3_12,
-      index: 'complete_onboarding.py',
-      handler: 'lambda_handler',
-      timeout: Duration.seconds(60),
-      role: tenantManagementExecRole,
-      layers: [props.lambdaLayer],
-      environment: {
-        EVENTBUS_NAME: props.eventBus.eventBusName,
-        EVENT_SOURCE: props.controlPlaneEventSource,
-        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
-      },
-    });
-    this.completeOnboarding = completeOnboarding;
-
-    // Error handler.
-    const errorHandler = new PythonFunction(this, 'ErrorHandler', {
-      entry: path.join(__dirname, '../../resources/functions/'),
-      runtime: Runtime.PYTHON_3_12,
-      index: 'error_handler.py',
-      handler: 'lambda_handler',
-      timeout: Duration.seconds(60),
-      role: tenantManagementExecRole,
-      layers: [props.lambdaLayer],
-      environment: {
-        EVENTBUS_NAME: props.eventBus.eventBusName,
-        EVENT_SOURCE: props.controlPlaneEventSource,
-        TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
-      },
-    });
-    this.errorHandler = errorHandler;
 
     const tenantManagementServices = new PythonFunction(this, 'TenantManagementServices', {
       entry: path.join(__dirname, '../../resources/functions/'),
