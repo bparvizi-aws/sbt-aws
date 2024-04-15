@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         # Extract result (success or failure) from the event.
         result = detail.get('result')
 
-        # Extract the task token from the event.
+        # Extract the tenantId.
         tenant_id = detail.get('tenantId')
 
         # Get task token and tenant details from db.

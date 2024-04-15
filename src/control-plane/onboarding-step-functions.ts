@@ -25,6 +25,7 @@ export interface OnboardingStepFunctionsProps {
 
 export class OnboardingStepFunctions extends Construct {
   lambdaEventTarget: LambdaFunction;
+  stateMachineARN: string;
 
   constructor(scope: Construct, id: string, props: OnboardingStepFunctionsProps) {
     super(scope, id);
@@ -198,6 +199,7 @@ export class OnboardingStepFunctions extends Construct {
       ],
       true
     );
+    this.stateMachineARN = stateMachine.stateMachineArn;
 
     const lambdaEventHandlerExecRole = new Role(this, 'lambdaEventHandlerExecRole', {
       assumedBy: new ServicePrincipal('lambda.amazonaws.com'),

@@ -41,6 +41,13 @@ export class ControlPlane extends Construct {
 
     const tables = new Tables(this, 'tables-stack');
 
+    const onboardingStepFunctions = new OnboardingStepFunctions(this, 'onboarding-step-functions', {
+      controlPlaneEventSource: props.controlPlaneEventSource,
+      eventBus: messaging.eventBus,
+      lambdaLayer: lambdaLayers.controlPlaneLambdaLayer,
+      tables: tables,
+    });
+
     const services = new Services(this, 'services-stack', {
       eventBus: messaging.eventBus,
       idpDetails: props.auth.controlPlaneIdpDetails,
@@ -48,13 +55,7 @@ export class ControlPlane extends Construct {
       tables: tables,
       onboardingDetailType: props.onboardingDetailType,
       controlPlaneEventSource: props.controlPlaneEventSource,
-    });
-
-    const onboardingStepFunctions = new OnboardingStepFunctions(this, 'onboarding-step-functions', {
-      controlPlaneEventSource: props.controlPlaneEventSource,
-      eventBus: messaging.eventBus,
-      lambdaLayer: lambdaLayers.controlPlaneLambdaLayer,
-      tables: tables,
+      onboardingStateMachineArn: onboardingStepFunctions.stateMachineARN,
     });
 
     const tenantConfigService = new TenantConfigService(this, 'auth-info-service-stack', {

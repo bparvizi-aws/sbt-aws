@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
-import { Duration } from 'aws-cdk-lib';
+import { aws_iam, Duration } from 'aws-cdk-lib';
 import { EventBus } from 'aws-cdk-lib/aws-events';
 import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { Runtime, LayerVersion, Function } from 'aws-cdk-lib/aws-lambda';
@@ -18,6 +18,7 @@ export interface ServicesProps {
   readonly tables: Tables;
   readonly onboardingDetailType: string;
   readonly controlPlaneEventSource: string;
+  readonly onboardingStateMachineArn: string;
 }
 
 export class Services extends Construct {
@@ -42,7 +43,12 @@ export class Services extends Construct {
     tenantManagementExecRole.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess')
     );
-
+    const startExecutionPolicy = new aws_iam.PolicyStatement({
+      actions: ['states:StartExecution'],
+      resources: [props.onboardingStateMachineArn],
+      effect: aws_iam.Effect.ALLOW,
+    });
+    tenantManagementExecRole.addToPolicy(startExecutionPolicy);
     NagSuppressions.addResourceSuppressions(
       tenantManagementExecRole,
       [
@@ -77,6 +83,7 @@ export class Services extends Construct {
         EVENTBUS_NAME: props.eventBus.eventBusName,
         EVENT_SOURCE: props.controlPlaneEventSource,
         TENANT_DETAILS_TABLE: props.tables.tenantDetails.tableName,
+        ONBOARDING_STATE_MACHINE_ARN: props.onboardingStateMachineArn,
       },
     });
 

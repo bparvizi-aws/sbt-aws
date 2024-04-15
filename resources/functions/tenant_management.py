@@ -24,6 +24,7 @@ eventbus_name = os.environ['EVENTBUS_NAME']
 event_source = os.environ['EVENT_SOURCE']
 dynamodb = boto3.resource('dynamodb')
 tenant_details_table = dynamodb.Table(os.environ['TENANT_DETAILS_TABLE'])
+onboarding_state_machine_arn = os.environ['ONBOARDING_STATE_MACHINE_ARN']
 
 
 @app.post("/tenants")
@@ -41,10 +42,12 @@ def create_tenant():
 
         input_item['isActive'] = True
 
-        response = tenant_details_table.put_item(Item=input_item)
-        __create_control_plane_event(
-            json.dumps(input_details), ControlPlaneEventTypes.ONBOARDING.value)
-
+        # Start Onboarding state machine execution.
+        stepfunctions_client = boto3.client('stepfunctions')
+        response = stepfunctions_client.start_execution(
+            stateMachineArn=onboarding_state_machine_arn, input=json.dumps(input_details)
+        )
+        logger.info("response success, %s", response)
     except Exception as e:
         raise Exception("Error creating a new tenant", e)
     else:
